@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Crypto Table</title>
+    <style>
+        table{
+            border-collapse: collapse;
+            width: 100%;
+        }
+        th,td{
+            border: 1px solid #dddddd;
+            text-align: left;
+            padding: 8px;
+        }
+        th{
+            background-color: #f2f2f2;
+        }
+    </style>
+</head>
+<body>
+    <button onclick="fetchDataAsync()">fetch Data using Async</button>
+    <button onclick="fetchDataThen()">fetch Data using .then</button>
+    <input type="text" id="searchInput" placeholder="Search.....">
+    <button onclick="searchData()">Search</button>
+    <button onclick="sortData('market_cap')">Sort by Market Cap</button>
+    <button onclick="sortData('price_change')">Sort by Price change</button>
+
+    <table id="cryptoTable">
+        <thread>
+            <tr>
+                <th>Name</th>
+                <th>Id</th>
+                <th>Image</th>
+                <th>Symbol</th>
+                <th>Current Prize</th>
+                <th>Total Volume</th>
+                <th>Market Cap</th>
+                <th>Price Change</th>
+                <th></th>
+                <th></th>
+                <th></th>
+            </tr>
+            <tbody id="tableBody">
+
+            </tbody>
+        </thread>
+    </table>
+</body>
+
+<script>
+
+    const apiUrl='https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=10&page=1&sparkline=false'
+
+    function fetchDataThen(){
+        fetch(apiUrl)
+        .then(response=>response.json())
+        .then(data=>renderTable(data));
+    }
+
+    async function fetchDataAsync(){
+        const response=await fetch(apiUrl);
+        const data=await response.json();
+        renderTable(data);
+    }
+
+function renderTable(data){
+    //const tableBody=document.getElementById('tableBody');
+     tableBody.innerHTML="";
+
+   // data.forEach((item) => {
+       // const row=document.createElement('tr');
+        //row.innerHTML='';
+    
+        data.forEach(item=>{
+            const row=document.createElement('tr');
+            row.innerHTML=`
+            <td><img src="${item.image}">${item.name} </td>
+            <td>${item.id} </td>
+            <td><img src="${item.image}" style="width:30px";height:30px;"></td>
+            <td>${item.symbol}</td>
+            <td>${item.current_price}</td>
+            <td>${item.total_volume}</td>
+            <td>${item.market_cap}</td>
+            <td>${item.price_change_percentage_24h}</td>`;
+          tableBody.appendChild(row);
+        });
+    };
+
+    
+    
+    function searchData(){
+        const input=document.getElementById('searchInput').value.toLowerCase();
+        const rows=document.querySelectorAll('#tableBody tr');
+        rows.forEach(row =>{
+            const found=Array.from(row.children).some(cell=>cell.textContent.toLowerCase().includes(input));
+            row.style.display=found?'':'none';
+        });
+    }
+
+    function sortData(key){
+        const table=document.getElementById('cryptoTable');
+        const rows=Array.from(table.querySelectorAll('tBody tr'));
+
+        rows.sort((a,b)=>{
+            const aValue=parseFloat(a.children[key=='market_cap'? 6:7].textContent.replace(/[$,]/g,''));
+
+            const bValue=parseFloat(b.children[key=='market_cap'? 6:7].textContent.replace(/[$,]/g,''));
+
+            return key==='market_cap'?bValue-aValue:aValue-bValue;
+        });
+
+        rows.forEach(row=>table.querySelector('tbody').appendChild(row));
+    }
+
+</script>
+</html>
